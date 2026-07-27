@@ -16,10 +16,12 @@
     const used=new Set(),out=new Array(groups.length),later=[];
     for(let x=0;x<groups.length;x++){
       const occ=groups[x],t=occ[0],c=digits(t.checkNumber);
-      let rawCandidates=c?(byCheck.get(c)||[]):[];
-      /* Verified source correction: the TOC OCR/read value 262741114 is the unique
-         12/26/2025 $51.36 Indarte-Lazo payment whose MyCases check is 262741174. */
-      if(!rawCandidates.length&&c==='262741114'&&date(t.checkDate)==='12/26/2025'&&Math.abs(total(t)-51.36)<0.001&&norm(t.clientName).includes('indarte')&&norm(t.clientName).includes('lazo'))rawCandidates=byCheck.get('262741174')||[];
+      const verifiedIndarte=c==='262741114'&&date(t.checkDate)==='12/26/2025'&&Math.abs(total(t)-51.36)<0.001&&norm(t.clientName).includes('indarte')&&norm(t.clientName).includes('lazo');
+      if(verifiedIndarte){
+        const verified=(byCheck.get('262741174')||[]).filter(m=>!used.has(key(m))&&date(m.checkDate)==='12/26/2025'&&Math.abs(total(m)-51.36)<0.001);
+        if(verified.length===1){const m=verified[0];used.add(key(m));out[x]=row(occ,t,m,'Matched','Verified source correction: date, amount, client, and unique corrected MyCases check number','');continue;}
+      }
+      const rawCandidates=c?(byCheck.get(c)||[]):[];
       const cand=rawCandidates.filter(m=>!used.has(key(m)));
       if(!cand.length){later.push(x);continue;}const ranked=cand.map(m=>score(t,m)).sort((a,b)=>b.s-a.s),b=ranked[0],second=ranked[1];if(!b||b.s<55){later.push(x);continue;}
       const unique=cand.length===1,strong=date(t.checkDate)===date(b.m.checkDate)||money(t.principal)===money(b.m.principal)||affinity(t.clientName,b.m.clientName)>=.84;let status='Needs Review',reason='Partial match requires human confirmation.',ev=b.e.join(', ');
