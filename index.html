@@ -7,15 +7,11 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<style>
-.fingerprint-summary{padding:10px 12px;border-radius:9px;background:#eef2f6;font-weight:700;margin-bottom:10px}.fingerprint-summary.pass{background:#dcfce7;color:#166534}.fingerprint-summary.warn{background:#fef3c7;color:#92400e}.fingerprint-row{display:grid;gap:4px;padding:11px 12px;border:1px solid #d8e0ea;border-radius:10px;margin:8px 0}.fingerprint-row.pass{border-left:5px solid #16a34a}.fingerprint-row.warn{border-left:5px solid #d97706}.fingerprint-row.fail{border-left:5px solid #dc2626}.fingerprint-row small{color:#475467;line-height:1.35}
-</style>
 </head><body>
 <header><div><h1>GTMDJD Verified Comparison Portal</h1><p>Convert, reconcile, deduplicate, verify, and export — directly in your browser.</p></div><span>Local-only processing</span></header>
 <main>
 <section class="notice"><b>Original files are never modified.</b> Nothing is emailed, uploaded, or written to Airtable.</section>
-<section class="card"><h2>Original benchmark fingerprint check</h2><p>This prevents a new project from being confused with the six original GTMDJD MyCases workbooks. After selecting MyCases files, each file is labeled as an exact original, different content, or a new-project file.</p><div id="fingerprintSummary" class="fingerprint-summary">No MyCases files selected yet.</div><div id="fingerprintResults"></div></section>
-<section class="card"><h2>Required MyCases XLSX coverage</h2><p>Select the complete exports for all five periods below. Files may be selected from a Google Drive folder visible in Windows File Explorer.</p>
+<section class="card"><h2>Required MyCases comparison coverage</h2><p>Select only the original GTMDJD comparison exports for the periods below. Do not use files from a different TOC project even when the date ranges look similar.</p>
 <div id="periods" class="periods">
 <div data-start="08/01/2024" data-end="12/31/2024">08/01/2024–12/31/2024 <b>Waiting</b></div>
 <div data-start="01/01/2025" data-end="09/01/2025">01/01/2025–09/01/2025 <b>Waiting</b></div>
@@ -24,7 +20,7 @@
 <div data-start="01/01/2026" data-end="06/30/2026">01/01/2026–06/30/2026 <b>Waiting</b></div>
 </div></section>
 <section class="grid">
-<div class="card"><h2>1. MyCases exports</h2><p>Select XLSX files with all fields. XLS, CSV, and ZIP are also supported.</p><input id="mycases" type="file" multiple accept=".xls,.xlsx,.csv,.zip"><div id="mycasesList"></div></div>
+<div class="card"><h2>1. MyCases comparison exports</h2><p>Select the original XLS, XLSX, CSV, or ZIP files for this GTMDJD project only.</p><input id="mycases" type="file" multiple accept=".xls,.xlsx,.csv,.zip"><div id="mycasesList"></div></div>
 <div class="card"><h2>2. GTMDJD paid TOCs</h2><p>Select PDFs, spreadsheets, CSVs, images, or ZIP files.</p><input id="toc" type="file" multiple accept=".pdf,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.zip"><div id="tocList"></div></div>
 </section>
 <section class="card"><h2>3. Run comparison</h2><label><input id="ocr" type="checkbox" checked> OCR scanned PDFs/images</label><label><input id="strict" type="checkbox" checked> Strict verification mode</label><button id="run">Run Verified Comparison</button><button id="reset">Reset</button><progress id="progress" max="100" value="0"></progress><div id="progressText"></div></section>
@@ -33,4 +29,4 @@
 <div class="card"><h2>Exception queue</h2><div class="table-wrap"><table id="exceptions"></table></div></div>
 <div class="card"><h2>4. Download results</h2><button id="dlWorkbook">Boss-ready workbook</button><button id="dlMaster">Final master CSV</button><button id="dlExceptions">Exception queue CSV</button><button id="dlZip">Complete ZIP</button></div></section>
 <section class="card"><h2>Processing log</h2><pre id="log"></pre></section>
-</main><footer>Download-only workflow. Airtable remains a separate owner-approved step.</footer><script src="app.js"></script><script src="fingerprints.js"></script></body></html>
+</main><footer>Download-only workflow. Airtable remains a separate owner-approved step.</footer><script src="app.js"></script></body></html>
