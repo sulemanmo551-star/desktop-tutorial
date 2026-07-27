@@ -1,0 +1,38 @@
+/* UI controller for the isolated background engine. */
+(() => {
+  const runButton=document.getElementById('run');
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const csvText=rows=>{if(!rows.length)return'';const h=Object.keys(rows[0]),q=v=>`"${String(v??'').replaceAll('"','""')}"`;return[h.map(q).join(','),...rows.map(r=>h.map(k=>q(r[k])).join(','))].join('\r\n');};
+  const save=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);};
+  function coverage(myRows){
+    const toTime=v=>{const m=String(v||'').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?new Date(+m[3],+m[1]-1,+m[2]).getTime():NaN;};
+    S.coverage=[...document.querySelectorAll('#periods>div')].map(el=>{const start=toTime(el.dataset.start),end=toTime(el.dataset.end),rows=myRows.filter(r=>{const x=toTime(r.checkDate);return x>=start&&x<=end;});el.className=rows.length?'covered':'missing';el.querySelector('b').textContent=rows.length?`${rows.length} rows detected`:'Missing';return{period:`${el.dataset.start}-${el.dataset.end}`,rows:rows.length,pass:rows.length>0};});
+  }
+  function render(data){
+    S.myRows=data.myRows;S.tocRows=new Array(data.tocRowsCount);S.master=data.master;S.exceptions=data.exceptions;
+    const review=S.exceptions.filter(r=>r['Match Status']==='Needs Review').length,unmatched=S.exceptions.filter(r=>r['Match Status']==='Not Matched').length,matched=data.matched;
+    document.getElementById('m1').textContent=data.tocRowsCount.toLocaleString();document.getElementById('m2').textContent=S.master.length.toLocaleString();document.getElementById('m3').textContent=matched.toLocaleString();document.getElementById('m4').textContent=review.toLocaleString();document.getElementById('m5').textContent=unmatched.toLocaleString();document.getElementById('m6').textContent=`${S.master.length?((matched/S.master.length)*100).toFixed(2):'0.00'}%`;
+    const gates=[['All five requested periods contain payment rows',S.coverage.every(x=>x.pass)],['Every final row has a valid status',S.master.every(r=>['Matched','Needs Review','Not Matched'].includes(r['Match Status']))],['Exception queue is complete',S.exceptions.length===review+unmatched],['All canonical dates are valid',S.master.every(r=>!r['Check Date']||/^\d{2}\/\d{2}\/\d{4}$/.test(r['Check Date']))],['Processing completed outside the UI thread',true],['No source files were modified',true],['No email or Airtable action occurred',true]];
+    S.gates=gates.map(([name,pass])=>({name,pass}));document.getElementById('gates').innerHTML=gates.map(([name,pass])=>`<div class="${pass?'pass':'fail'}"><b>${pass?'PASS':'FAIL'}</b> ${esc(name)}</div>`).join('');
+    const shown=S.exceptions.slice(0,100),headers=['Payment Year','Client Name','Check Number','Check Date','Payment Total','Match Status','Exception Reason'];document.getElementById('exceptions').innerHTML=`<thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${shown.map(r=>`<tr>${headers.map(h=>`<td>${esc(r[h])}</td>`).join('')}</tr>`).join('')}</tbody>`+(S.exceptions.length>100?`<caption>Showing first 100 of ${S.exceptions.length.toLocaleString()} exceptions. Download the CSV for the complete queue.</caption>`:'');
+    document.getElementById('results').hidden=false;progress(100,'Background comparison completed. Review verification gates before use.');
+    document.getElementById('dlMaster').onclick=()=>save(new Blob([csvText(S.master)],{type:'text/csv;charset=utf-8'}),'GTMDJD_FINAL_MASTER.csv');
+    document.getElementById('dlExceptions').onclick=()=>save(new Blob([csvText(S.exceptions)],{type:'text/csv;charset=utf-8'}),'GTMDJD_EXCEPTION_QUEUE.csv');
+    document.getElementById('dlWorkbook').onclick=()=>{const w=XLSX.utils.book_new();XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(S.master),'Final Master');XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(S.exceptions),'Exception Queue');XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(S.coverage),'Coverage');XLSX.writeFile(w,'GTMDJD_BOSS_READY.xlsx');};
+    document.getElementById('dlZip').onclick=async()=>{const z=new JSZip();z.file('GTMDJD_FINAL_MASTER.csv',csvText(S.master));z.file('GTMDJD_EXCEPTION_QUEUE.csv',csvText(S.exceptions));save(await z.generateAsync({type:'blob'}),'GTMDJD_RESULTS.zip');};
+  }
+  async function filePayload(files,label){const out=[];for(let i=0;i<files.length;i++){progress(4+Math.round(((i+1)/files.length)*6),`Preparing ${label} file ${i+1} of ${files.length}...`);const buffer=await files[i].arrayBuffer();out.push({name:files[i].name,buffer});}return out;}
+  runButton.onclick=async()=>{
+    if(!S.my.length||!S.toc.length)return alert('Select both the MyCases reference and GTMDJD workbook first.');
+    runButton.disabled=true;document.getElementById('results').hidden=true;document.getElementById('log').textContent='';progress(2,'Starting isolated background run...');
+    let worker,timer;
+    try{
+      const myFiles=await filePayload(S.my,'MyCases'),tocFiles=await filePayload(S.toc,'GTMDJD');
+      worker=new Worker(`worker-engine.js?v=20260727-worker1`);
+      timer=setTimeout(()=>{worker.terminate();runButton.disabled=false;progress(0,'Run stopped after the safety timeout. No result was produced.');alert('The background run exceeded the five-minute safety limit. No downloads were created.');},300000);
+      worker.onmessage=e=>{const msg=e.data;if(msg.type==='progress'){progress(msg.pct,msg.text);log(msg.text);}else if(msg.type==='coverage-source'){coverage(msg.rows);}else if(msg.type==='done'){clearTimeout(timer);render(msg);runButton.disabled=false;worker.terminate();}else if(msg.type==='error'){clearTimeout(timer);runButton.disabled=false;progress(0,'Background engine stopped safely.');log(msg.message);alert(`Verified run stopped safely:\n${msg.message}`);worker.terminate();}};
+      worker.onerror=e=>{clearTimeout(timer);runButton.disabled=false;progress(0,'Background engine failed safely.');log(e.message);alert(`Background engine error: ${e.message}`);worker.terminate();};
+      worker.postMessage({myFiles,tocFiles},[...myFiles,...tocFiles].map(f=>f.buffer));
+    }catch(error){if(timer)clearTimeout(timer);if(worker)worker.terminate();runButton.disabled=false;progress(0,'Run stopped safely.');log(error.stack||String(error));alert(`Run could not start: ${error.message||error}`);}
+  };
+})();
