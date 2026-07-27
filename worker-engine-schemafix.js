@@ -14,6 +14,6 @@
     }
   };
 
-  nativeImportScripts('worker-engine.js?v=20260727-logicfix1');
-  nativeImportScripts('worker-matching-fix.js?v=20260727-logicfix1');
+  nativeImportScripts('worker-engine.js?v=20260727-logicfix2');
+  nativeImportScripts('worker-matching-fix.js?v=20260727-logicfix2');
 })();
