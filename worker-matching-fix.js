@@ -1,12 +1,23 @@
 /* Matching rules validated against the verified GTMDJD master. */
 (function(){
   const nameTokens=v=>norm(v).split(' ').filter(Boolean);
+  const editAffinity=(a,b)=>{
+    const aa=norm(a).replace(/\s/g,''),bb=norm(b).replace(/\s/g,'');
+    if(!aa||!bb)return 0;
+    const previous=Array.from({length:bb.length+1},(_,i)=>i);
+    for(let i=1;i<=aa.length;i++){
+      const current=[i];
+      for(let j=1;j<=bb.length;j++)current[j]=Math.min(current[j-1]+1,previous[j]+1,previous[j-1]+(aa[i-1]===bb[j-1]?0:1));
+      for(let j=0;j<current.length;j++)previous[j]=current[j];
+    }
+    return 1-previous[bb.length]/Math.max(aa.length,bb.length);
+  };
   const nameAffinity=(a,b)=>{
     const aa=nameTokens(a),bb=nameTokens(b);
     if(!aa.length||!bb.length)return 0;
     const aj=aa.join(''),bj=bb.join('');
     if(aj===bj)return 1;
-    let score=0;
+    let score=editAffinity(a,b);
     if(aa[0]===bb[0])score=Math.max(score,0.75);
     if(aa[0]===bb[0]&&aa[1]&&bb[1]){
       let prefix=0,limit=Math.min(aa[1].length,bb[1].length);
