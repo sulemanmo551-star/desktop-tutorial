@@ -7,10 +7,23 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js"></script>
+<style>
+.drive-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}.drive-actions button{margin:0}.drive-status{padding:11px 13px;border-radius:9px;background:#eef4fb;margin-top:10px}.drive-status.ok{background:#dcfce7;color:#166534}.drive-status.warn{background:#fef3c7;color:#92400e}.drive-status.bad{background:#fee2e2;color:#991b1b}.drive-setup{margin-top:15px;border:1px solid #d8e0ea;border-radius:12px;padding:12px}.drive-setup summary{font-weight:700;cursor:pointer}.drive-fields{display:grid;grid-template-columns:1fr;gap:10px;margin:14px 0}.drive-fields label{font-weight:700}.drive-fields input{width:100%;padding:10px;border:1px solid #b8c3d1;border-radius:8px;margin-top:5px}.security-note{font-size:13px;color:#475467;line-height:1.5}
+</style>
 </head><body>
 <header><div><h1>GTMDJD Verified Comparison Portal</h1><p>Convert, reconcile, deduplicate, verify, and export — directly in your browser.</p></div><span>Local-only processing</span></header>
 <main>
 <section class="notice"><b>Original files are never modified.</b> Nothing is emailed, uploaded, or written to Airtable.</section>
+<section class="card"><h2>Import securely from Google Drive</h2><p>Sign in with the authorized Google account, browse Drive folders, select the MyCases exports and GTMDJD source files, and process them directly without manually downloading them first.</p>
+<div class="drive-actions"><button id="driveMyCases" type="button">Import MyCases from Google Drive</button><button id="driveToc" type="button">Import GTMDJD from Google Drive</button><button id="disconnectDrive" type="button" class="secondary">Disconnect Google Drive</button></div>
+<div id="driveStatus" class="drive-status">Drive connector requires one-time Google Cloud authorization.</div>
+<details id="driveSetup" class="drive-setup"><summary>One-time Google Drive connector setup</summary>
+<p class="security-note">Enter the Google-issued web OAuth Client ID, browser API key, and Cloud project number. These values are saved only in this browser. No Google password, OAuth token, or pharmacy file is committed to GitHub.</p>
+<div class="drive-fields"><label>OAuth Web Client ID<input id="driveClientId" autocomplete="off" placeholder="123...apps.googleusercontent.com"></label><label>Browser API Key<input id="driveApiKey" autocomplete="off" placeholder="AIza..."></label><label>Google Cloud Project Number<input id="driveAppId" autocomplete="off" inputmode="numeric" placeholder="123456789012"></label></div>
+<button id="saveDriveConfig" type="button">Save connector configuration</button><button id="clearDriveConfig" type="button" class="secondary">Clear configuration</button>
+</details></section>
 <section class="card"><h2>Required MyCases XLSX coverage</h2><p>Upload the complete exports for all five periods below. The app validates coverage from the actual payment dates inside the files, not only the filenames.</p>
 <div id="periods" class="periods">
 <div data-start="08/01/2024" data-end="12/31/2024">08/01/2024–12/31/2024 <b>Waiting</b></div>
@@ -20,8 +33,8 @@
 <div data-start="01/01/2026" data-end="06/30/2026">01/01/2026–06/30/2026 <b>Waiting</b></div>
 </div></section>
 <section class="grid">
-<div class="card"><h2>1. MyCases exports</h2><p>Upload XLSX files with all fields. XLS, CSV, and ZIP are also supported.</p><input id="mycases" type="file" multiple accept=".xls,.xlsx,.csv,.zip"><div id="mycasesList"></div></div>
-<div class="card"><h2>2. GTMDJD paid TOCs</h2><p>Upload PDFs, spreadsheets, CSVs, images, or ZIP files.</p><input id="toc" type="file" multiple accept=".pdf,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.zip"><div id="tocList"></div></div>
+<div class="card"><h2>1. MyCases exports</h2><p>Import from Google Drive above, or upload XLSX files with all fields. XLS, CSV, and ZIP are also supported.</p><input id="mycases" type="file" multiple accept=".xls,.xlsx,.csv,.zip"><div id="mycasesList"></div></div>
+<div class="card"><h2>2. GTMDJD paid TOCs</h2><p>Import from Google Drive above, or upload PDFs, spreadsheets, CSVs, images, or ZIP files.</p><input id="toc" type="file" multiple accept=".pdf,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.zip"><div id="tocList"></div></div>
 </section>
 <section class="card"><h2>3. Run comparison</h2><label><input id="ocr" type="checkbox" checked> OCR scanned PDFs/images</label><label><input id="strict" type="checkbox" checked> Strict verification mode</label><button id="run">Run Verified Comparison</button><button id="reset">Reset</button><progress id="progress" max="100" value="0"></progress><div id="progressText"></div></section>
 <section id="results" hidden><div class="metrics"><div><b id="m1">0</b><span>Source rows</span></div><div><b id="m2">0</b><span>Unique</span></div><div><b id="m3">0</b><span>Matched</span></div><div><b id="m4">0</b><span>Review</span></div><div><b id="m5">0</b><span>Unmatched</span></div><div><b id="m6">0%</b><span>Match rate</span></div></div>
@@ -29,4 +42,4 @@
 <div class="card"><h2>Exception queue</h2><div class="table-wrap"><table id="exceptions"></table></div></div>
 <div class="card"><h2>4. Download results</h2><button id="dlWorkbook">Boss-ready workbook</button><button id="dlMaster">Final master CSV</button><button id="dlExceptions">Exception queue CSV</button><button id="dlZip">Complete ZIP</button></div></section>
 <section class="card"><h2>Processing log</h2><pre id="log"></pre></section>
-</main><footer>Download-only workflow. Airtable remains a separate owner-approved step.</footer><script src="app.js"></script></body></html>
+</main><footer>Download-only workflow. Airtable remains a separate owner-approved step.</footer><script src="app.js"></script><script src="drive.js"></script></body></html>
