@@ -31,7 +31,7 @@
     let worker,timer;const finish=()=>{runButton.disabled=false;runButton.textContent='Run Verified Comparison';};
     try{
       const myFiles=await filePayload(S.my,'MyCases'),tocFiles=await filePayload(S.toc,'GTMDJD');
-      worker=new Worker(`worker-engine-schemafix.js?v=20260727-logicfix3`);
+      worker=new Worker(`worker-engine-schemafix.js?v=20260727-final4`);
       timer=setTimeout(()=>{worker.terminate();finish();progress(0,'Run stopped after the safety timeout. No result was produced.');alert('The background run exceeded the five-minute safety limit. No downloads were created.');},300000);
       worker.onmessage=e=>{const msg=e.data;if(msg.type==='progress'){if(msg.pct>0)progress(msg.pct,msg.text);bufferedLog(msg.text);}else if(msg.type==='coverage-source'){coverage(msg.rows);}else if(msg.type==='done'){clearTimeout(timer);render(msg);finish();worker.terminate();}else if(msg.type==='error'){clearTimeout(timer);finish();progress(0,'Background engine stopped safely.');bufferedLog(msg.message);alert(`Verified run stopped safely:\n${msg.message}`);worker.terminate();}};
       worker.onerror=e=>{clearTimeout(timer);finish();progress(0,'Background engine failed safely.');bufferedLog(e.message);alert(`Background engine error: ${e.message}`);worker.terminate();};
