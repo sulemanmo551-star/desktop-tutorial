@@ -6,7 +6,7 @@
   const nativeRead=XLSX.read.bind(XLSX);
   XLSX.read=(data,options={})=>nativeRead(data,{...options,dense:false});
   self.importScripts=(...urls)=>{for(const url of urls){if(String(url).includes('xlsx@0.18.5'))continue;nativeImportScripts(url);}};
-  nativeImportScripts('worker-engine.js?v=20260727-logicfix3');
-  nativeImportScripts('worker-matching-fix.js?v=20260727-logicfix3');
-  nativeImportScripts('worker-final-fix.js?v=20260727-logicfix3');
+  nativeImportScripts('worker-engine.js?v=20260727-final4');
+  nativeImportScripts('worker-matching-fix.js?v=20260727-final4');
+  nativeImportScripts('worker-final-fix.js?v=20260727-final4');
 })();
