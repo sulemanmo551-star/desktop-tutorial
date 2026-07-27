@@ -1,33 +1,32 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GTMDJD Verified Comparison Portal</title>
-<link rel="stylesheet" href="styles.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GTMDJD Verified Comparison Portal</title><link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-</head>
-<body>
+</head><body>
 <header><div><h1>GTMDJD Verified Comparison Portal</h1><p>Convert, reconcile, deduplicate, verify, and export — directly in your browser.</p></div><span>Local-only processing</span></header>
 <main>
 <section class="notice"><b>Original files are never modified.</b> Nothing is emailed, uploaded, or written to Airtable.</section>
+<section class="card"><h2>Required MyCases XLSX coverage</h2><p>Upload the complete exports for all five periods below. The app validates coverage from the actual payment dates inside the files, not only the filenames.</p>
+<div id="periods" class="periods">
+<div data-start="08/01/2024" data-end="12/31/2024">08/01/2024–12/31/2024 <b>Waiting</b></div>
+<div data-start="01/01/2025" data-end="09/01/2025">01/01/2025–09/01/2025 <b>Waiting</b></div>
+<div data-start="09/12/2025" data-end="10/31/2025">09/12/2025–10/31/2025 <b>Waiting</b></div>
+<div data-start="11/01/2025" data-end="12/31/2025">11/01/2025–12/31/2025 <b>Waiting</b></div>
+<div data-start="01/01/2026" data-end="06/30/2026">01/01/2026–06/30/2026 <b>Waiting</b></div>
+</div></section>
 <section class="grid">
-<div class="card"><h2>1. MyCases exports</h2><p>Upload .xls, .xlsx, .csv, or ZIP files.</p><input id="mycases" type="file" multiple accept=".xls,.xlsx,.csv,.zip"><div id="mycasesList"></div></div>
+<div class="card"><h2>1. MyCases exports</h2><p>Upload XLSX files with all fields. XLS, CSV, and ZIP are also supported.</p><input id="mycases" type="file" multiple accept=".xls,.xlsx,.csv,.zip"><div id="mycasesList"></div></div>
 <div class="card"><h2>2. GTMDJD paid TOCs</h2><p>Upload PDFs, spreadsheets, CSVs, images, or ZIP files.</p><input id="toc" type="file" multiple accept=".pdf,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.zip"><div id="tocList"></div></div>
 </section>
 <section class="card"><h2>3. Run comparison</h2><label><input id="ocr" type="checkbox" checked> OCR scanned PDFs/images</label><label><input id="strict" type="checkbox" checked> Strict verification mode</label><button id="run">Run Verified Comparison</button><button id="reset">Reset</button><progress id="progress" max="100" value="0"></progress><div id="progressText"></div></section>
-<section id="results" hidden>
-<div class="metrics"><div><b id="m1">0</b><span>Source rows</span></div><div><b id="m2">0</b><span>Unique</span></div><div><b id="m3">0</b><span>Matched</span></div><div><b id="m4">0</b><span>Review</span></div><div><b id="m5">0</b><span>Unmatched</span></div><div><b id="m6">0%</b><span>Match rate</span></div></div>
+<section id="results" hidden><div class="metrics"><div><b id="m1">0</b><span>Source rows</span></div><div><b id="m2">0</b><span>Unique</span></div><div><b id="m3">0</b><span>Matched</span></div><div><b id="m4">0</b><span>Review</span></div><div><b id="m5">0</b><span>Unmatched</span></div><div><b id="m6">0%</b><span>Match rate</span></div></div>
 <div class="card"><h2>Verification gates</h2><div id="gates"></div></div>
 <div class="card"><h2>Exception queue</h2><div class="table-wrap"><table id="exceptions"></table></div></div>
-<div class="card"><h2>4. Download results</h2><button id="dlWorkbook">Boss-ready workbook</button><button id="dlMaster">Final master CSV</button><button id="dlExceptions">Exception queue CSV</button><button id="dlZip">Complete ZIP</button></div>
-</section>
+<div class="card"><h2>4. Download results</h2><button id="dlWorkbook">Boss-ready workbook</button><button id="dlMaster">Final master CSV</button><button id="dlExceptions">Exception queue CSV</button><button id="dlZip">Complete ZIP</button></div></section>
 <section class="card"><h2>Processing log</h2><pre id="log"></pre></section>
-</main>
-<footer>Download-only workflow. Airtable remains a separate owner-approved step.</footer>
-<script src="app.js"></script>
-</body>
-</html>
+</main><footer>Download-only workflow. Airtable remains a separate owner-approved step.</footer><script src="app.js"></script></body></html>
