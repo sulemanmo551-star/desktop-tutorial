@@ -52,12 +52,32 @@ function normalizeRows(rows,src,type){
   return out;
 }
 
+async function worksheetRowsBatched(ws,onProgress){
+  const ref=ws['!ref'];
+  if(!ref)return[];
+  const range=XLSX.utils.decode_range(ref),rows=[];
+  const dense=ws['!data'];
+  for(let r=range.s.r;r<=range.e.r;r++){
+    const row=[];
+    for(let c=range.s.c;c<=range.e.c;c++){
+      const cell=dense?.[r]?.[c]??ws[XLSX.utils.encode_cell({r,c})];
+      row.push(cell?.v??'');
+    }
+    rows.push(row);
+    if((r-range.s.r+1)%200===0){
+      if(onProgress)onProgress(r-range.s.r+1,range.e.r-range.s.r+1);
+      await yieldToBrowser();
+    }
+  }
+  return rows;
+}
+
 async function normalizeRowsBatched(rows,src,type){
   let hi=-1;
   for(let i=0;i<rows.length;i++){
     const r=rows[i];
     if(Array.isArray(r)&&r.some(v=>clean(v)!=='')&&r.map(norm).filter(x=>/CLIENT|PATIENT|CLAIMANT|CHECK|DATE|BILL|PRINCIP|INTEREST|AMOUNT/.test(x)).length>=2){hi=i;break;}
-    if(i>0&&i%400===0)await yieldToBrowser();
+    if(i>0&&i%300===0)await yieldToBrowser();
   }
   if(hi<0)return[];
   const m=headerMap(rows[hi]||[]),out=[];
@@ -69,7 +89,7 @@ async function normalizeRowsBatched(rows,src,type){
       const paymentLike=digits(o.checkNumber)&&o.checkDate&&o.principal!=null;
       if(type==='MyCases'?(paymentLike||(o.clientName&&o.checkDate&&o.principal!=null)):paymentLike)out.push(o);
     }
-    if(i>hi&&i%250===0)await yieldToBrowser();
+    if(i>hi&&i%200===0)await yieldToBrowser();
   }
   return out;
 }
@@ -82,13 +102,14 @@ async function parseSheet(f,type){
   const book=XLSX.read(bytes,{type:'array',cellDates:true,dense:true});
   const out=[],total=book.SheetNames.length;
   for(let index=0;index<total;index++){
-    const s=book.SheetNames[index];
-    const pct=type==='TOC'?45+Math.round(((index+1)/total)*24):20+Math.round(((index+1)/total)*20);
-    progress(pct,`Reading ${f.name}: sheet ${index+1} of ${total} — ${s}`);
+    const s=book.SheetNames[index],ws=book.Sheets[s];
+    const base=type==='TOC'?45:20,span=type==='TOC'?24:20;
+    progress(base+Math.round((index/total)*span),`Reading ${f.name}: sheet ${index+1} of ${total} — ${s}`);
     log(`Reading ${f.name} sheet ${index+1}/${total}: ${s}`);
     await yieldToBrowser();
-    const rows=XLSX.utils.sheet_to_json(book.Sheets[s],{header:1,defval:'',raw:true,blankrows:false});
-    await yieldToBrowser();
+    const rows=await worksheetRowsBatched(ws,(done,totalRows)=>{
+      progress(base+Math.round(((index+Math.min(done/Math.max(totalRows,1),0.99))/total)*span),`Reading ${s}: ${done.toLocaleString()} of ${totalRows.toLocaleString()} rows`);
+    });
     const parsed=await normalizeRowsBatched(rows,`${f.name} / ${s}`,type);
     out.push(...parsed);
     log(`Finished ${s}: ${parsed.length} payment rows detected.`);
