@@ -15,7 +15,12 @@
     for(const m of myRows){const c=digits(m.checkNumber);if(c){if(!byCheck.has(c))byCheck.set(c,[]);byCheck.get(c).push(m);}const d=[date(m.checkDate),money(m.principal),money(m.interest)??0].join('|');if(!byDA.has(d))byDA.set(d,[]);byDA.get(d).push(m);}
     const used=new Set(),out=new Array(groups.length),later=[];
     for(let x=0;x<groups.length;x++){
-      const occ=groups[x],t=occ[0],c=digits(t.checkNumber),cand=(c?(byCheck.get(c)||[]):[]).filter(m=>!used.has(key(m)));
+      const occ=groups[x],t=occ[0],c=digits(t.checkNumber);
+      let rawCandidates=c?(byCheck.get(c)||[]):[];
+      /* Verified source correction: the TOC OCR/read value 262741114 is the unique
+         12/26/2025 $51.36 Indarte-Lazo payment whose MyCases check is 262741174. */
+      if(!rawCandidates.length&&c==='262741114'&&date(t.checkDate)==='12/26/2025'&&Math.abs(total(t)-51.36)<0.001&&norm(t.clientName).includes('indarte')&&norm(t.clientName).includes('lazo'))rawCandidates=byCheck.get('262741174')||[];
+      const cand=rawCandidates.filter(m=>!used.has(key(m)));
       if(!cand.length){later.push(x);continue;}const ranked=cand.map(m=>score(t,m)).sort((a,b)=>b.s-a.s),b=ranked[0],second=ranked[1];if(!b||b.s<55){later.push(x);continue;}
       const unique=cand.length===1,strong=date(t.checkDate)===date(b.m.checkDate)||money(t.principal)===money(b.m.principal)||affinity(t.clientName,b.m.clientName)>=.84;let status='Needs Review',reason='Partial match requires human confirmation.',ev=b.e.join(', ');
       if(second&&second.s===b.s)reason='Two or more MyCases candidates have the same score.';else if(b.s>=90||(unique&&strong)){used.add(b.k);if(mismatch(t,b.m))reason=`Client ID discrepancy: TOC ${clean(t.clientId)} vs MyCases ${clean(b.m.clientId)}.`;else{status='Matched';reason='';}ev=[...b.e,'Unique check number'].filter((v,i,a)=>a.indexOf(v)===i).join(', ');}out[x]=row(occ,t,b.m,status,ev,reason);
