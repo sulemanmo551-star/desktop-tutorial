@@ -1,15 +1,7 @@
-/*
- * Compatibility bootstrap for SheetJS 0.18.5.
- *
- * The existing engine's cell reader supports sparse worksheets and the newer
- * `!data` dense representation. SheetJS 0.18.5 represents dense worksheets as
- * arrays instead, which made every cell appear blank. Force sparse worksheets
- * so the existing bounded parser reads the real GTMDJD workbook correctly.
- */
+/* Compatibility bootstrap for SheetJS 0.18.5 plus verified matching rules. */
 (() => {
   const XLSX_URL='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
   const nativeImportScripts=self.importScripts.bind(self);
-
   nativeImportScripts(XLSX_URL);
 
   const nativeRead=XLSX.read.bind(XLSX);
@@ -22,5 +14,6 @@
     }
   };
 
-  nativeImportScripts('worker-engine.js?v=20260727-schemafix1');
+  nativeImportScripts('worker-engine.js?v=20260727-logicfix1');
+  nativeImportScripts('worker-matching-fix.js?v=20260727-logicfix1');
 })();
