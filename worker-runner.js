@@ -24,15 +24,16 @@
   async function filePayload(files,label){const out=[];for(let i=0;i<files.length;i++){progress(4+Math.round(((i+1)/files.length)*6),`Preparing ${label} file ${i+1} of ${files.length}...`);const buffer=await files[i].arrayBuffer();out.push({name:files[i].name,buffer});}return out;}
   runButton.onclick=async()=>{
     if(!S.my.length||!S.toc.length)return alert('Select both the MyCases reference and GTMDJD workbook first.');
-    runButton.disabled=true;document.getElementById('results').hidden=true;document.getElementById('log').textContent='';progress(2,'Starting isolated background run...');
+    runButton.disabled=true;runButton.textContent='Running in background…';document.getElementById('results').hidden=true;document.getElementById('log').textContent='';progress(2,'Starting isolated background run...');
     let worker,timer;
+    const finish=()=>{runButton.disabled=false;runButton.textContent='Run Verified Comparison';};
     try{
       const myFiles=await filePayload(S.my,'MyCases'),tocFiles=await filePayload(S.toc,'GTMDJD');
-      worker=new Worker(`worker-engine.js?v=20260727-worker1`);
-      timer=setTimeout(()=>{worker.terminate();runButton.disabled=false;progress(0,'Run stopped after the safety timeout. No result was produced.');alert('The background run exceeded the five-minute safety limit. No downloads were created.');},300000);
-      worker.onmessage=e=>{const msg=e.data;if(msg.type==='progress'){progress(msg.pct,msg.text);log(msg.text);}else if(msg.type==='coverage-source'){coverage(msg.rows);}else if(msg.type==='done'){clearTimeout(timer);render(msg);runButton.disabled=false;worker.terminate();}else if(msg.type==='error'){clearTimeout(timer);runButton.disabled=false;progress(0,'Background engine stopped safely.');log(msg.message);alert(`Verified run stopped safely:\n${msg.message}`);worker.terminate();}};
-      worker.onerror=e=>{clearTimeout(timer);runButton.disabled=false;progress(0,'Background engine failed safely.');log(e.message);alert(`Background engine error: ${e.message}`);worker.terminate();};
+      worker=new Worker(`worker-engine.js?v=20260727-worker2`);
+      timer=setTimeout(()=>{worker.terminate();finish();progress(0,'Run stopped after the safety timeout. No result was produced.');alert('The background run exceeded the five-minute safety limit. No downloads were created.');},300000);
+      worker.onmessage=e=>{const msg=e.data;if(msg.type==='progress'){progress(msg.pct,msg.text);log(msg.text);}else if(msg.type==='coverage-source'){coverage(msg.rows);}else if(msg.type==='done'){clearTimeout(timer);render(msg);finish();worker.terminate();}else if(msg.type==='error'){clearTimeout(timer);finish();progress(0,'Background engine stopped safely.');log(msg.message);alert(`Verified run stopped safely:\n${msg.message}`);worker.terminate();}};
+      worker.onerror=e=>{clearTimeout(timer);finish();progress(0,'Background engine failed safely.');log(e.message);alert(`Background engine error: ${e.message}`);worker.terminate();};
       worker.postMessage({myFiles,tocFiles},[...myFiles,...tocFiles].map(f=>f.buffer));
-    }catch(error){if(timer)clearTimeout(timer);if(worker)worker.terminate();runButton.disabled=false;progress(0,'Run stopped safely.');log(error.stack||String(error));alert(`Run could not start: ${error.message||error}`);}
+    }catch(error){if(timer)clearTimeout(timer);if(worker)worker.terminate();finish();progress(0,'Run stopped safely.');log(error.stack||String(error));alert(`Run could not start: ${error.message||error}`);}
   };
 })();
