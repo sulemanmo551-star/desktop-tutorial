@@ -3,16 +3,150 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow,noarchive">
-<title>GTMDJD Portal — Private</title>
-<style>body{margin:0;background:#f4f7fb;color:#172033;font-family:Arial,sans-serif;display:grid;min-height:100vh;place-items:center}.card{max-width:620px;margin:24px;padding:34px;border:1px solid #d8e0ea;border-radius:16px;background:#fff;box-shadow:0 12px 36px rgba(16,24,40,.08)}h1{margin:0 0 12px;color:#17365d}p{font-size:17px;line-height:1.55;margin:8px 0}.badge{display:inline-block;margin-top:16px;padding:9px 13px;border-radius:999px;background:#fff1f0;color:#b42318;font-weight:700}</style>
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<title>GTMDJD Portal — Private Access</title>
+<link rel="stylesheet" href="styles.css?v=PIN1">
+<style>
+html.locked,html.locked body{overflow:hidden}.pin-gate{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#102a49,#17365d 55%,#204e7c);font-family:Arial,sans-serif}.pin-card{width:min(430px,100%);background:#fff;border-radius:18px;padding:32px;box-shadow:0 24px 80px rgba(0,0,0,.3);text-align:center}.pin-lock{width:64px;height:64px;margin:0 auto 18px;display:grid;place-items:center;border-radius:50%;background:#eaf2fb;font-size:30px}.pin-card h1{margin:0 0 8px;color:#17365d;font-size:26px}.pin-card p{margin:0 0 22px;color:#5a6678;line-height:1.45}.pin-card input{width:100%;height:54px;border:2px solid #b8c7d9;border-radius:11px;text-align:center;font-size:25px;letter-spacing:12px;padding-left:12px;outline:none}.pin-card input:focus{border-color:#17365d;box-shadow:0 0 0 4px rgba(23,54,93,.12)}.pin-card button{width:100%;height:50px;margin:14px 0 0;background:#17365d}.pin-error{min-height:22px;margin-top:12px!important;color:#b42318!important;font-weight:700}.pin-note{font-size:12px!important;margin-top:13px!important;color:#7b8797!important}.portal-shell[hidden]{display:none!important}
+</style>
 </head>
 <body>
-<main class="card">
-<h1>GTMDJD Portal is private</h1>
-<p>The public portal has been taken offline. Project files and audited results are restricted to Suleman Muhammad and Arshad.</p>
-<p>No comparison tool or project records are available from this public address.</p>
-<span class="badge">Public access disabled</span>
-</main>
+<div id="pinGate" class="pin-gate" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+  <form id="pinForm" class="pin-card" autocomplete="off">
+    <div class="pin-lock" aria-hidden="true">🔒</div>
+    <h1 id="pinTitle">Private GTMDJD Portal</h1>
+    <p>Enter the 4-digit access PIN to open the verified comparison tool.</p>
+    <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" aria-label="4-digit PIN" autofocus>
+    <button id="pinButton" type="submit">Unlock Portal</button>
+    <p id="pinError" class="pin-error" aria-live="polite"></p>
+    <p class="pin-note">Authorized access only · Local-only file processing</p>
+  </form>
+</div>
+
+<div id="portal" class="portal-shell" hidden>
+<header><div><h1>GTMDJD Verified Comparison Portal</h1><p>Convert, reconcile, deduplicate, verify, and export — directly in your browser.</p></div><span>Private access · Local-only processing · Build FINAL6</span></header>
+<main>
+<section class="notice"><b>Original files are never modified.</b> Nothing is emailed, uploaded, or written to Airtable.</section>
+<section class="card"><h2>Required MyCases comparison coverage</h2><p>Select only the original GTMDJD comparison exports for the periods below. Do not use files from a different TOC project even when the date ranges look similar.</p>
+<div id="periods" class="periods">
+<div data-start="08/01/2024" data-end="12/31/2024">08/01/2024–12/31/2024 <b>Waiting</b></div>
+<div data-start="01/01/2025" data-end="09/01/2025">01/01/2025–09/01/2025 <b>Waiting</b></div>
+<div data-start="09/12/2025" data-end="10/31/2025">09/12/2025–10/31/2025 <b>Waiting</b></div>
+<div data-start="11/01/2025" data-end="12/31/2025">11/01/2025–12/31/2025 <b>Waiting</b></div>
+<div data-start="01/01/2026" data-end="06/30/2026">01/01/2026–06/30/2026 <b>Waiting</b></div>
+</div></section>
+<section class="grid">
+<div class="card"><h2>1. MyCases comparison exports</h2><p>Select the original XLS, XLSX, CSV, or ZIP files for this GTMDJD project only.</p><input id="mycases" type="file" multiple accept=".xls,.xlsx,.csv,.zip"><div id="mycasesList"></div></div>
+<div class="card"><h2>2. GTMDJD paid TOCs</h2><p>Select PDFs, spreadsheets, CSVs, images, or ZIP files.</p><input id="toc" type="file" multiple accept=".pdf,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.zip"><div id="tocList"></div></div>
+</section>
+<section class="card"><h2>3. Run comparison</h2><label><input id="ocr" type="checkbox" checked> OCR scanned PDFs/images</label><label><input id="strict" type="checkbox" checked> Strict verification mode</label><button id="run">Run Verified Comparison</button><button id="reset">Reset</button><progress id="progress" max="100" value="0"></progress><div id="progressText">Build FINAL6 ready.</div></section>
+<section id="results" hidden><div class="metrics"><div><b id="m1">0</b><span>Source rows</span></div><div><b id="m2">0</b><span>Unique</span></div><div><b id="m3">0</b><span>Matched</span></div><div><b id="m4">0</b><span>Review</span></div><div><b id="m5">0</b><span>Unmatched</span></div><div><b id="m6">0%</b><span>Match rate</span></div></div>
+<div class="card"><h2>Verification gates</h2><div id="gates"></div></div>
+<div class="card"><h2>Exception queue</h2><div class="table-wrap"><table id="exceptions"></table></div></div>
+<div class="card"><h2>4. Download results</h2><button id="dlWorkbook">Boss-ready workbook</button><button id="dlMaster">Final master CSV</button><button id="dlExceptions">Exception queue CSV</button><button id="dlZip">Complete ZIP</button></div></section>
+<section class="card"><h2>Processing log</h2><pre id="log"></pre></section>
+</main><footer>Private, download-only workflow. Airtable remains a separate owner-approved step. · Build FINAL6</footer>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const EXPECTED_HASH = 'f68a48a9c71bc372e609614120de1687419e54974418fadeb37b8a0454ad5f68';
+  const gate = document.getElementById('pinGate');
+  const portal = document.getElementById('portal');
+  const form = document.getElementById('pinForm');
+  const input = document.getElementById('pinInput');
+  const button = document.getElementById('pinButton');
+  const error = document.getElementById('pinError');
+  let failures = 0;
+  let loading = false;
+  document.documentElement.classList.add('locked');
+
+  const digest = async value => {
+    const bytes = new TextEncoder().encode(value);
+    const hash = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
+  };
+
+  const loadScript = src => new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error('Could not load ' + src));
+    document.body.appendChild(script);
+  });
+
+  const startPortal = async () => {
+    if (loading) return;
+    loading = true;
+    gate.remove();
+    portal.hidden = false;
+    document.documentElement.classList.remove('locked');
+    await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+    await loadScript('app.js?v=PIN1');
+    await loadScript('validation-guard.js?v=PIN1');
+    await loadScript('worker-runner-final6.js?v=PIN1');
+  };
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const value = input.value.replace(/\D/g, '').slice(0, 4);
+    input.value = value;
+    if (value.length !== 4) {
+      error.textContent = 'Enter the complete 4-digit PIN.';
+      input.focus();
+      return;
+    }
+    button.disabled = true;
+    button.textContent = 'Checking…';
+    try {
+      if (await digest(value) === EXPECTED_HASH) {
+        sessionStorage.setItem('gtmdjd_pin_ok', '1');
+        error.textContent = '';
+        await startPortal();
+        return;
+      }
+      failures += 1;
+      error.textContent = 'Incorrect PIN. Try again.';
+      input.value = '';
+      input.focus();
+      if (failures >= 5) {
+        error.textContent = 'Too many attempts. Wait 30 seconds.';
+        input.disabled = true;
+        button.disabled = true;
+        setTimeout(() => {
+          failures = 0;
+          input.disabled = false;
+          button.disabled = false;
+          button.textContent = 'Unlock Portal';
+          error.textContent = '';
+          input.focus();
+        }, 30000);
+        return;
+      }
+    } catch (err) {
+      error.textContent = 'Unable to verify the PIN in this browser.';
+    }
+    button.disabled = false;
+    button.textContent = 'Unlock Portal';
+  });
+
+  input.addEventListener('input', () => {
+    input.value = input.value.replace(/\D/g, '').slice(0, 4);
+    error.textContent = '';
+  });
+
+  if (sessionStorage.getItem('gtmdjd_pin_ok') === '1') {
+    startPortal().catch(() => {
+      sessionStorage.removeItem('gtmdjd_pin_ok');
+      location.reload();
+    });
+  }
+})();
+</script>
 </body>
 </html>
